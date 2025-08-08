@@ -1,0 +1,44 @@
+# Source files
+source/
+*.tsx
+*.ts
+!dist/**/*
+
+# Development files
+test/
+*.test.js
+*.spec.js
+tsconfig.json
+.eslintrc*
+.prettierrc*
+xo.config.*
+
+# Git and CI
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Misc
+CLAUDE.md
+logo.png
+image.png
+screenshot.png
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Build tools
+.editorconfig
+.nvmrc
+
+# Keep these
+!dist/
+!README.md
+!package.json
+!LICENSE

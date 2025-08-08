@@ -1,6 +1,10 @@
-# PORTY
+# 🚀 PORTY - The Port Pal You've Been Waiting For
 
-*THE port pal you've been waiting for*
+[![npm version](https://img.shields.io/npm/v/porty-cli.svg)](https://www.npmjs.com/package/porty-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Windows Only](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/yourusername/porty)
+
+A beautiful terminal UI for managing processes on network ports. Quickly identify and kill processes occupying your development ports with style.
 
 ## We All Know This Feeling
 
@@ -15,7 +19,6 @@ Now you have two options, each worse than the other:
 - Open Task Manager and start playing `node.exe` roulette until the port's free again
 - Give up on it let the port roll over. Let that `localhost:3000` dream die for the foreseeable boot-time of your machine
 
-
 ## Enter PORTY
 
 PORTY shows you what actually matters:
@@ -29,93 +32,85 @@ PORTY shows you what actually matters:
 └─────┴───────┴───────┴───────────┴──────────────────────────────────────────┘
 ```
 
-Built with [Ink](https://github.com/vadimdemedes/ink) for a beautiful, interactive terminal experience.
+## 🚀 Quick Start
 
-## Installation
+No installation needed! Just run:
 
-### Quick Start (no install necessary)
 ```bash
-npx porty
+npx porty-cli
 ```
 
-### Install Globally
+Or install globally:
+
 ```bash
-npm install -g porty
+npm install -g porty-cli
 porty
 ```
 
-### Development
-```bash
-git clone https://github.com/bezalel6/porty.git
-cd porty
-npm install
-npm run dev
-porty
-```
-
-## Usage
+## 📖 Usage
 
 ### Interactive Mode (Default)
-
 ```bash
-porty          # Shows dev ports (3000, 8080, 5173, etc.)
-porty --all    # Shows ALL ports including system services
+porty                    # Show all listening ports
+porty --dev              # Show only development ports
 ```
 
-You'll get a beautiful, interactive terminal UI where you can:
-
-- **Navigate** with arrow keys (↑/↓)
-- **Kill processes** by pressing Enter on any row
-- **Filter** with `/` to search by port, PID, or command
-- **Refresh** with `r` to update the list
-- **Toggle** between dev/all ports with `a`
-- **Verbose mode** with `v` to see full command paths
-- **Clear filters** with `c`
-- **Quit** with `q` or `Ctrl+C`
-
-### Want to get straight to the point?
-
-Need to know what's on a specific port? No interaction needed:
-
+### Quick Commands
 ```bash
-porty --check 3000
-# or shorter
-porty -c 3000
+porty --check 3000       # Check what's running on port 3000
+porty --kill 3000        # Kill process on port 3000
+porty --kill 3000 -f     # Force kill without confirmation
+porty --list             # Get JSON output of all processes
+porty --list 3000        # Get JSON for specific port
 ```
 
-Shows exactly what's running on port 3000 and exits.
+### Interactive Controls
 
-### Direct Kill Mode
+| Key | Action |
+|-----|--------|
+| `↑/↓` | Navigate through processes |
+| `Enter` | Kill selected process |
+| `/` | Search/filter processes |
+| `r` | Refresh list |
+| `d` | Toggle dev/all ports |
+| `v` | Toggle verbose mode |
+| `c` | Clear filter |
+| `q` | Quit |
+| `A` | Admin kill (when normal kill fails) |
 
-When you just want it gone:
+## 🎨 Port Color Coding
+
+- 🔴 **System Ports** (< 1024) - Red
+- 🟢 **Dev Ports** (3000-10000) - Teal
+- 🟡 **Registered** (1024-49151) - Yellow  
+- 🟢 **Ephemeral** (49152+) - Green
+
+## 🛠️ Development Ports
+
+Dev mode focuses on commonly used development ports:
+- **3000-3005** - React, Node.js
+- **4000-4001, 4200-4201** - Angular
+- **5000-5001, 5173-5175** - Vite, Flask
+- **8000-8001, 8080-8083** - Django, Spring
+- **8888** - Jupyter
+- **9000-9001, 9200, 9229** - PHP, Elasticsearch, Node Debug
+- **19000-19002** - React Native
+
+## 🖥️ System Requirements
+
+- **Windows 10/11**
+- **Node.js 16+**
+- **Terminal**: Windows Terminal, PowerShell, or Git Bash (CMD not recommended)
+
+## Development
 
 ```bash
-porty --kill 3000
-# or shorter
-porty -k 3000
+git clone https://github.com/yourusername/porty.git
+cd porty
+npm install
+npm run build
+node dist/cli.js
 ```
-
-Shows what's about to be killed and confirms before executing, unless ran with -f or --force flag. which will not confirm.
-
-### List Mode
-
-For scripting or piping to other tools:
-
-```bash
-porty --list       # JSON output of all processes
-porty --list 3000  # JSON for specific port
-```
-
-## Features
-
-### Beautiful Terminal UI
-- **Real-time updates** - Pressing `r` will refresh the list so you can watch processes spawn and die
-- **Color-coded ports** - Dev ports are highlighted for quick identification. 
-- **Smooth interactions** - Keyboard-driven workflow that feels native
-
-### Developer-First Design
-- **Dev ports by default** - Only shows what you care about (3000, 8080, 5173, 4200, etc.)
-- **Zero configuration** - Works out of the box
 
 ## The Tech Stack
 
@@ -128,9 +123,17 @@ PORTY uses modern terminal UI capabilities:
 - **[chalk](https://github.com/chalk/chalk)** - Terminal styling
 
 ## Why PORTY?
- Because every developer has a right to know what is running on their compouters. No more port-enduced chaos. Killing a process has to be a specifically targeted action, not slots. It's tough, but fair. like king Solomon.
- ## License
- MIT - Do whatever you want with it. Just don't blame     
- me if you kill something important.
-  ---
- *Made with ❤️ and frustration*
+
+Because every developer has a right to know what is running on their computers. No more port-induced chaos. Killing a process has to be a specifically targeted action, not slots. It's tough, but fair, like King Solomon.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT - Do whatever you want with it. Just don't blame me if you kill something important.
+
+---
+
+*Made with ❤️ and frustration by developers tired of `netstat -ano | findstr :3000`*
