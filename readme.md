@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/porty-cli.svg)](https://www.npmjs.com/package/porty-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Windows Only](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/yourusername/porty)
+[![Windows Only](https://img.shields.io/badge/platform-Windows-blue)](https://github.com/bezalel6/porty)
 
 A beautiful terminal UI for managing processes on network ports. Quickly identify and kill processes occupying your development ports with style.
 
@@ -105,7 +105,7 @@ Dev mode focuses on commonly used development ports:
 ## Development
 
 ```bash
-git clone https://github.com/yourusername/porty.git
+git clone https://github.com/bezalel6/porty.git
 cd porty
 npm install
 npm run build

@@ -3,14 +3,14 @@
 	"version": "1.0.0",
 	"description": "A beautiful terminal UI for managing processes on network ports (Windows only)",
 	"license": "MIT",
-	"author": "Your Name",
+	"author": "bezalel6",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/yourusername/porty.git"
+		"url": "https://github.com/bezalel6/porty.git"
 	},
-	"homepage": "https://github.com/yourusername/porty#readme",
+	"homepage": "https://github.com/bezalel6/porty#readme",
 	"bugs": {
-		"url": "https://github.com/yourusername/porty/issues"
+		"url": "https://github.com/bezalel6/porty/issues"
 	},
 	"keywords": [
 		"port",
