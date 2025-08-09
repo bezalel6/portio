@@ -28,7 +28,8 @@
 		"dev-tools"
 	],
 	"bin": {
-		"porty": "dist/cli.js"
+		"porty": "dist/cli.js",
+		"portx": "dist/cli.js"
 	},
 	"type": "module",
 	"engines": {
