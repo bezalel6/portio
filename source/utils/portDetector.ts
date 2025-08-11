@@ -325,14 +325,14 @@ export async function killProcessElevated(pid: number, processName: string): Pro
 	
 	// For Windows, create a simpler PowerShell script since result will show in TUI
 	const psScript = `
-		$Host.UI.RawUI.WindowTitle = 'PORTY - Admin Kill'
-		Write-Host 'PORTY - Killing process with admin privileges...' -ForegroundColor Yellow
+		$Host.UI.RawUI.WindowTitle = 'PORTIO - Admin Kill'
+		Write-Host 'PORTIO - Killing process with admin privileges...' -ForegroundColor Yellow
 		Write-Host ''
 		Write-Host 'Process: ${processName} (PID: ${pid})' -ForegroundColor Cyan
 		Write-Host ''
 		taskkill /F /PID ${pid}
 		Write-Host ''
-		Write-Host 'Command executed. Check PORTY for result.' -ForegroundColor Green
+		Write-Host 'Command executed. Check PORTIO for result.' -ForegroundColor Green
 		Start-Sleep -Seconds 1
 	`.replace(/\n\t\t/g, '\n').trim();
 	

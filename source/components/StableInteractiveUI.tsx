@@ -35,7 +35,7 @@ const StaticHeader: React.FC = () => {
 				</Box>
 			</Box>
 			<Box marginTop={1}>
-				<Text bold>{chalk.hex('#4ECDC4')('⚡ PORTY')}</Text>
+				<Text bold>{chalk.hex('#4ECDC4')('⚡ PORTIO')}</Text>
 				<Text color="gray"> - Port Process Manager </Text>
 				<Text color="magenta">v1.0</Text>
 			</Box>
@@ -219,7 +219,7 @@ export const StableInteractiveUI: React.FC<Props> = ({initialShowAll = true}) =>
 			setTimeout(() => loadProcesses(), 500);
 		} else {
 			setFailedKillPid(pid);
-			setMessage(`❌ Failed to kill ${process?.processName || `process ${pid}`}. Press ${chalk.yellow.bold('A')} to try with admin privileges or run porty as admin.`);
+			setMessage(`❌ Failed to kill ${process?.processName || `process ${pid}`}. Press ${chalk.yellow.bold('A')} to try with admin privileges or run portio as admin.`);
 		}
 	};
 
