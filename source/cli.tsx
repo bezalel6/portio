@@ -15,6 +15,7 @@ const cli = meow(`
 	  $ portio                    ${chalk.dim('# Interactive mode showing all ports (default)')}
 	  $ portio --dev              ${chalk.dim('# Show only development ports')}
 	  $ portio --check <port>     ${chalk.dim('# Check what\'s running on a specific port')}
+	  $ portio --wtf <port>       ${chalk.dim('# Same as --check (for the frustrated)')}
 	  $ portio --kill <port>      ${chalk.dim('# Kill process on a specific port')}
 	  $ portio --mine <port>      ${chalk.dim('# Force kill process on port (no confirmation)')}
 	  $ portio --list [port]      ${chalk.dim('# JSON output of processes')}
@@ -22,6 +23,7 @@ const cli = meow(`
 	${chalk.bold('Options')}
 	  --dev, -d          Show only development ports (3000-10000, etc)
 	  --check, -c        Check what's running on a specific port
+	  --wtf              Alias for --check (when you're frustrated)
 	  --kill, -k         Kill process on a specific port
 	  --mine, -m         Kill process on port without confirmation
 	  --force, -f        Skip confirmation when killing
@@ -60,6 +62,10 @@ const cli = meow(`
 		check: {
 			type: 'string',
 			shortFlag: 'c'
+		},
+		wtf: {
+			type: 'string',
+			description: 'Alias for --check (for the frustrated)'
 		},
 		kill: {
 			type: 'string',
@@ -124,8 +130,10 @@ async function main() {
 		return;
 	}
 
-	if (flags.check) {
-		const port = parseInt(flags.check, 10);
+	// Handle both --check and --wtf
+	const checkPort = flags.check || flags.wtf;
+	if (checkPort) {
+		const port = parseInt(checkPort, 10);
 		
 		if (isNaN(port)) {
 			console.error(chalk.red('Error: Invalid port number'));

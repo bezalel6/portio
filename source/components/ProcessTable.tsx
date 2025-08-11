@@ -5,47 +5,19 @@ import chalk from 'chalk';
 interface TableProps {
 	data: Array<Record<string, string>>;
 	selectedIndex?: number;
-	scrollingText?: boolean;
 }
 
 const stripAnsi = (str: string): string => {
 	return str.replace(/\x1B[[(?);]{0,2}(;?\d)*./g, '');
 };
 
-const truncateText = (text: string, maxWidth: number, addEllipsis: boolean = true): string => {
-	const stripped = stripAnsi(text);
-	if (stripped.length <= maxWidth) {
-		return text;
-	}
-	
-	if (!addEllipsis || maxWidth < 3) {
-		return text.substring(0, maxWidth);
-	}
-	
-	return text.substring(0, maxWidth - 3) + '...';
-};
-
-export const ProcessTable: React.FC<TableProps> = ({data, selectedIndex = -1, scrollingText = true}) => {
+export const ProcessTable: React.FC<TableProps> = ({data, selectedIndex = -1}) => {
 	const {stdout} = useStdout();
-	const [scrollOffset, setScrollOffset] = useState(0);
 	const [viewportStart, setViewportStart] = useState(0);
 	
 	// Use stable terminal dimensions
 	const terminalWidth = stdout?.columns || 80;
 	const terminalHeight = stdout?.rows || 24;
-	
-	useEffect(() => {
-		if (scrollingText && selectedIndex >= 0 && data[selectedIndex]) {
-			const interval = setInterval(() => {
-				setScrollOffset(prev => prev + 1);
-			}, 150);
-			
-			return () => clearInterval(interval);
-		} else {
-			setScrollOffset(0);
-		}
-		return undefined;
-	}, [selectedIndex, scrollingText, data]);
 	
 	useEffect(() => {
 		const availableHeight = Math.max(5, terminalHeight - 10);
@@ -65,7 +37,7 @@ export const ProcessTable: React.FC<TableProps> = ({data, selectedIndex = -1, sc
 	
 	const columns = ['#', 'PID', 'Port', 'Process', 'Command'];
 	const minWidths: Record<string, number> = {
-		'#': 3,
+		'#': 7,  // Increased for checkbox
 		'PID': 6,
 		'Port': 5,
 		'Process': 10,
@@ -110,43 +82,34 @@ export const ProcessTable: React.FC<TableProps> = ({data, selectedIndex = -1, sc
 		return columnWidths;
 	}, [data, terminalWidth]);
 	
-	const renderCell = (value: string, width: number, isSelected: boolean, isCommand: boolean = false) => {
-		const stripped = stripAnsi(value);
-		
-		if (isSelected && isCommand && scrollingText && stripped.length > width) {
-			const totalLength = stripped.length;
-			const effectiveOffset = scrollOffset % (totalLength + 5);
-			
-			let displayText = value;
-			if (effectiveOffset < totalLength) {
-				displayText = value.substring(effectiveOffset) + '     ' + value;
-			} else {
-				displayText = '     ' + value;
-			}
-			
-			const truncated = truncateText(displayText, width, false);
-			const padding = ' '.repeat(Math.max(0, width - stripAnsi(truncated).length));
-			return truncated + padding;
+	const truncateText = (text: string, maxWidth: number): string => {
+		const stripped = stripAnsi(text);
+		if (stripped.length <= maxWidth) {
+			return text;
 		}
-		
+		if (maxWidth < 3) {
+			return text.substring(0, maxWidth);
+		}
+		return text.substring(0, maxWidth - 3) + '...';
+	};
+	
+	const renderCell = (value: string, width: number) => {
 		const truncated = truncateText(value, width);
 		const actualLength = stripAnsi(truncated).length;
 		const padding = ' '.repeat(Math.max(0, width - actualLength));
-		
 		return truncated + padding;
 	};
 	
-	const renderRow = (row: Record<string, string>, index: number, isHeader = false) => {
-		const isSelected = index === selectedIndex;
-		
+	const renderRow = (row: Record<string, string>, _index: number, isHeader = false) => {
 		return (
 			<Box>
 				<Text color="cyan">│ </Text>
 				{columns.map((col, colIndex) => {
 					const value = isHeader ? col : row[col] || '';
-					const displayValue = isHeader ? chalk.bold.white(value) : value;
 					const width = columnWidths[col] || minWidths[col] || 10;
-					const cellContent = renderCell(displayValue, width, isSelected, col === 'Command');
+					
+					const displayValue = isHeader ? chalk.bold.white(value) : value;
+					const cellContent = renderCell(displayValue, width);
 					
 					return (
 						<React.Fragment key={col}>

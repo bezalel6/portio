@@ -71,7 +71,7 @@ export const KillMode: React.FC<Props> = ({port, force = false}) => {
 			setResult('Kill cancelled');
 			setTimeout(() => exit(), 100);
 		}
-	});
+	}, {isActive: !force});
 
 	if (loading) {
 		return (

@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import {ProcessInfo, getProcessesOnPorts, killProcess, killProcessElevated, checkProcessExists} from '../utils/portDetector.js';
 import {ProcessTable} from './ProcessTable.js';
 import {Logo} from './Logo.js';
+import * as packageJson from '../../package.json';
 
 interface Props {
 	initialShowAll?: boolean;
@@ -27,6 +28,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 	const [failedKillPid, setFailedKillPid] = useState<number | null>(null);
 	const [checkingAdminKill, setCheckingAdminKill] = useState(false);
 	const [scrollOffset, setScrollOffset] = useState(0);
+	const [selectedPids, setSelectedPids] = useState<Set<number>>(new Set());
 
 	// Calculate viewport height - reserve space for header, controls, and messages
 	const HEADER_LINES = 10; // Logo + title + mode/filter + controls
@@ -111,7 +113,12 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		
 		if (confirmKill !== null) {
 			if (key.return) {
-				handleKillProcess(confirmKill);
+				if (confirmKill === -999) {
+					// Multi-kill
+					handleMultiKill();
+				} else {
+					handleKillProcess(confirmKill);
+				}
 				setConfirmKill(null);
 			} else if (key.escape) {
 				setConfirmKill(null);
@@ -169,6 +176,30 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 			return;
 		}
 
+		// Spacebar toggles selection
+		if (input === ' ' && filteredProcesses.length > 0) {
+			const process = filteredProcesses[selectedIndex];
+			if (process) {
+				const newSelected = new Set(selectedPids);
+				if (newSelected.has(process.pid)) {
+					newSelected.delete(process.pid);
+					setMessage(`Deselected ${process.processName} (PID: ${process.pid})`);
+				} else {
+					newSelected.add(process.pid);
+					setMessage(`Selected ${process.processName} (PID: ${process.pid})`);
+				}
+				setSelectedPids(newSelected);
+			}
+			return;
+		}
+
+		// Kill multiple selected or single
+		if (input === 'k' && selectedPids.size > 0) {
+			setMessage(`⚠️ Kill ${selectedPids.size} selected processes? Press ${chalk.green('Enter')} to confirm or ${chalk.red('ESC')} to cancel`);
+			setConfirmKill(-999); // Special value for multi-kill
+			return;
+		}
+
 		if (key.upArrow) {
 			setSelectedIndex(Math.max(0, selectedIndex - 1));
 		}
@@ -178,10 +209,16 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		}
 
 		if (key.return && filteredProcesses.length > 0) {
-			const process = filteredProcesses[selectedIndex];
-			if (process) {
-				setConfirmKill(process.pid);
-				setMessage(`⚠️ Kill ${chalk.yellow(process.processName)} (PID: ${process.pid}) on port ${chalk.cyan(process.port)}? Press ${chalk.green('Enter')} to confirm or ${chalk.red('ESC')} to cancel`);
+			// If we have selected items, kill them all
+			if (selectedPids.size > 0) {
+				handleMultiKill();
+			} else {
+				// Single kill for current row
+				const process = filteredProcesses[selectedIndex];
+				if (process) {
+					setConfirmKill(process.pid);
+					setMessage(`⚠️ Kill ${chalk.yellow(process.processName)} (PID: ${process.pid}) on port ${chalk.cyan(process.port)}? Press ${chalk.green('Enter')} to confirm or ${chalk.red('ESC')} to cancel`);
+				}
 			}
 		}
 	});
@@ -200,10 +237,60 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		}
 	};
 
+	const handleMultiKill = async () => {
+		if (selectedPids.size === 0) return;
+		
+		setMessage(`Killing ${selectedPids.size} processes...`);
+		let successCount = 0;
+		let failedPids: number[] = [];
+		
+		for (const pid of selectedPids) {
+			const success = await killProcess(pid);
+			if (success) {
+				successCount++;
+			} else {
+				failedPids.push(pid);
+			}
+		}
+		
+		if (failedPids.length === 0) {
+			setMessage(`✅ Successfully killed ${successCount} processes`);
+			setSelectedPids(new Set());
+		} else {
+			setMessage(`⚠️ Killed ${successCount} processes, ${failedPids.length} failed (may need admin)`);
+		}
+		
+		setTimeout(() => loadProcesses(), 500);
+	};
+
 	// Only render visible rows based on viewport
 	const visibleProcesses = useMemo(() => {
 		return filteredProcesses.slice(scrollOffset, scrollOffset + maxVisibleRows);
 	}, [filteredProcesses, scrollOffset, maxVisibleRows]);
+
+	// Check if selected row has command overflow
+	const selectedOverflow = useMemo(() => {
+		if (selectedIndex >= 0 && selectedIndex < filteredProcesses.length) {
+			const proc = filteredProcesses[selectedIndex];
+			if (!proc) return null;
+			
+			let commandDisplay;
+			if (!proc.command || proc.command.trim() === '') {
+				return null; // NONE doesn't need overflow
+			} else if (showFullPaths) {
+				// Always show full command in overflow when in full path mode
+				commandDisplay = proc.fullCommand || proc.command;
+				return commandDisplay; // Always show full path, no length check
+			} else {
+				commandDisplay = verboseMode ? (proc.fullCommand || proc.command) : proc.command;
+				// Only show overflow for simplified view if it's long
+				if (commandDisplay && commandDisplay.length > 40) {
+					return commandDisplay;
+				}
+			}
+		}
+		return null;
+	}, [selectedIndex, filteredProcesses, verboseMode, showFullPaths]);
 
 	const tableData = visibleProcesses.map((proc, actualIndex) => {
 		const index = actualIndex + scrollOffset;
@@ -215,10 +302,15 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		const isHighPort = proc.port >= 49152;
 		
 		// Process command path
-		let commandDisplay = verboseMode ? (proc.fullCommand || proc.command) : proc.command;
-		if (!commandDisplay || commandDisplay.trim() === '') {
+		let commandDisplay;
+		if (!proc.command || proc.command.trim() === '') {
 			commandDisplay = 'NONE';
-		} else if (!showFullPaths && commandDisplay !== 'NONE') {
+		} else if (showFullPaths) {
+			// Show full command path and arguments
+			commandDisplay = proc.fullCommand || proc.command;
+		} else {
+			// Show simplified command
+			commandDisplay = verboseMode ? (proc.fullCommand || proc.command) : proc.command;
 			// Extract filename from path
 			const match = commandDisplay.match(/([^\\\/]+)(?:\.[^.]+)?(?:\s|$)/);
 			if (match) {
@@ -226,15 +318,36 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 			}
 		}
 		
+		// Add checkbox to process number
+		const isChecked = selectedPids.has(proc.pid);
+		const checkbox = isChecked ? '[×]' : '[ ]';
+		const processNum = `${checkbox} ${(index + 1).toString()}`;
+		
 		if (isSelected) {
 			// Vibrant selection with background
-			return {
-				'#': chalk.bgCyan.black(` ${(index + 1).toString().padEnd(3)} `),
-				'PID': chalk.bgCyan.black(` ${proc.pid.toString().padEnd(6)} `),
-				'Port': chalk.bgCyan.black.bold(` ${proc.port.toString().padEnd(5)} `),
-				'Process': chalk.bgCyan.black(` ${(proc.processName || 'Unknown').padEnd(15)} `),
-				'Command': chalk.bgCyan.black(` ${commandDisplay} `)
-			};
+			// For selected rows, pass raw command for scrolling animation
+			// ProcessTable will handle the scrolling
+			if (commandDisplay === 'NONE') {
+				return {
+					'#': chalk.bgCyan.black(` ${processNum.padEnd(7)} `),
+					'PID': chalk.bgCyan.black(` ${proc.pid.toString().padEnd(6)} `),
+					'Port': chalk.bgCyan.black.bold(` ${proc.port.toString().padEnd(5)} `),
+					'Process': chalk.bgCyan.black(` ${(proc.processName || 'Unknown').padEnd(15)} `),
+					'Command': chalk.hex('#6B7280').italic('NONE'),
+					'__rawCommand': 'NONE',  // Pass raw for scrolling
+					'__isSelected': 'true'  // Flag for ProcessTable
+				};
+			} else {
+				return {
+					'#': chalk.bgCyan.black(` ${processNum.padEnd(7)} `),
+					'PID': chalk.bgCyan.black(` ${proc.pid.toString().padEnd(6)} `),
+					'Port': chalk.bgCyan.black.bold(` ${proc.port.toString().padEnd(5)} `),
+					'Process': chalk.bgCyan.black(` ${(proc.processName || 'Unknown').padEnd(15)} `),
+					'Command': commandDisplay,  // Raw text for scrolling
+					'__rawCommand': commandDisplay,  // Also store raw
+					'__isSelected': 'true'  // Flag for ProcessTable (as string)
+				};
+			}
 		}
 		
 		// Color-coded by port type with better visibility
@@ -264,17 +377,26 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		
 		const processName = proc.processName || 'Unknown';
 		
-		// Style NONE differently
+		// Style commands based on display mode
 		const commandColor = commandDisplay === 'NONE' 
 			? chalk.hex('#6B7280').italic  // Dimmed gray italic for NONE
-			: chalk.hex('#94A3B8');  // Slate gray for actual commands
+			: showFullPaths 
+				? chalk.white  // Full bright white for full paths
+				: chalk.hex('#94A3B8');  // Slate gray for simplified commands
 		
+		// Color the checkbox based on selection
+		const checkboxColored = isChecked 
+			? chalk.green(checkbox)  // Green when checked
+			: chalk.gray(checkbox);   // Gray when not checked
+			
 		return {
-			'#': chalk.gray((index + 1).toString()),
+			'#': checkboxColored + ' ' + chalk.gray((index + 1).toString()),
 			'PID': chalk.hex('#A78BFA')(proc.pid.toString()), // Purple for PIDs
 			'Port': portColor.bold(proc.port.toString()),
 			'Process': processColor(processName),
-			'Command': commandColor(commandDisplay)
+			'Command': commandColor(commandDisplay),
+			'__rawCommand': commandDisplay,  // Pass raw for potential scrolling
+			'__isSelected': ''  // Empty string for non-selected
 		};
 	});
 
@@ -284,7 +406,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 			<Box marginBottom={1}>
 				<Text bold>{chalk.hex('#4ECDC4')('⚡ PORTIO')}</Text>
 				<Text color="gray"> - Port Process Manager </Text>
-				<Text color="magenta">v1.0</Text>
+				<Text color="magenta">v{(packageJson as any).default?.version || (packageJson as any).version || '1.1.0'}</Text>
 			</Box>
 
 			{loading ? (
@@ -359,17 +481,26 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 					)}
 
 					{!isFiltering && !confirmKill && !failedKillPid && (
-						<Box marginTop={1} paddingX={1}>
-							<Text color="gray">
-								{chalk.cyan.bold('↑↓')} nav  
-								{chalk.red.bold(' ⏎')} kill  
-								{chalk.yellow.bold(' /')} search  
-								{chalk.green.bold(' r')} refresh  
-								{chalk.magenta.bold(' d')} dev/all  
-								{chalk.blue.bold(' v')} verbose  
-								{chalk.hex('#FFB86C').bold(' p')} paths  
-								{chalk.gray.bold(' q')} quit
-							</Text>
+						<Box marginTop={1} paddingX={1} flexDirection="column">
+							{selectedOverflow ? (
+								<Box>
+									<Text color="cyan" dimColor>Cmd: </Text>
+									<Text color="gray">{selectedOverflow.length > 70 ? selectedOverflow.substring(0, 67) + '...' : selectedOverflow}</Text>
+								</Box>
+							) : (
+								<Text color="gray">
+									{chalk.cyan.bold('↑↓')} nav  
+									{chalk.green.bold(' ␣')} select  
+									{selectedPids.size > 0 ? chalk.red.bold(' k') : chalk.red.bold(' ⏎')} kill  
+									{chalk.yellow.bold(' /')} search  
+									{chalk.green.bold(' r')} refresh  
+									{chalk.magenta.bold(' d')} dev/all  
+									{chalk.blue.bold(' v')} verbose  
+									{chalk.hex('#FFB86C').bold(' p')} paths  
+									{chalk.gray.bold(' q')} quit
+									{selectedPids.size > 0 && chalk.yellow(` (${selectedPids.size} selected)`)}
+								</Text>
+							)}
 						</Box>
 					)}
 					
