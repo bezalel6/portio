@@ -1,16 +1,16 @@
 {
-	"name": "porty-cli",
+	"name": "portio",
 	"version": "1.0.0",
 	"description": "A beautiful terminal UI for managing processes on network ports (Windows only)",
 	"license": "MIT",
 	"author": "bezalel6",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/bezalel6/porty.git"
+		"url": "https://github.com/bezalel6/portio.git"
 	},
-	"homepage": "https://github.com/bezalel6/porty#readme",
+	"homepage": "https://github.com/bezalel6/portio#readme",
 	"bugs": {
-		"url": "https://github.com/bezalel6/porty/issues"
+		"url": "https://github.com/bezalel6/portio/issues"
 	},
 	"keywords": [
 		"port",
@@ -28,8 +28,7 @@
 		"dev-tools"
 	],
 	"bin": {
-		"porty": "dist/cli.js",
-		"portx": "dist/cli.js"
+		"portio": "dist/cli.js"
 	},
 	"type": "module",
 	"engines": {

@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Text, useApp} from 'ink';
-import chalk from 'chalk';
 import {getProcessOnPort} from '../utils/portDetector.js';
-import {Logo} from './Logo.js';
+// Logo removed for concise output
 
 interface Props {
 	port: number;
@@ -32,64 +31,30 @@ export const CheckMode: React.FC<Props> = ({port}) => {
 
 	if (loading) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Box>
-					<Text color="yellow">Checking port {port}...</Text>
-				</Box>
-			</Box>
+			<Text color="yellow">Checking port {port}...</Text>
 		);
 	}
 
 	if (error) {
 		return (
 			<Box flexDirection="column">
-				<Logo />
-				<Text color="red">Error checking port {port}:</Text>
-				<Text color="red">{error}</Text>
+				<Text color="red">Error: {error}</Text>
 			</Box>
 		);
 	}
 
 	if (!process) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Box>
-					<Text color="green">✓ Port {port} is free!</Text>
-				</Box>
-			</Box>
+			<Text color="green">✓ Port {port} is free</Text>
 		);
 	}
 
 	return (
 		<Box flexDirection="column">
-			<Logo />
-			<Text color="cyan" bold>Port {port} is in use:</Text>
-			<Box marginTop={1} flexDirection="column">
-				<Text>
-					<Text color="yellow">PID: </Text>
-					<Text>{process.pid}</Text>
-				</Text>
-				<Text>
-					<Text color="yellow">Process: </Text>
-					<Text>{process.processName || 'Unknown'}</Text>
-				</Text>
-				<Text>
-					<Text color="yellow">Command: </Text>
-					<Text>{process.command || 'N/A'}</Text>
-				</Text>
-				{process.fullCommand && (
-					<Box marginTop={1}>
-						<Text dimColor>Full command: {process.fullCommand}</Text>
-					</Box>
-				)}
-			</Box>
-			<Box marginTop={1}>
-				<Text dimColor>
-					Tip: Use {chalk.cyan('porty --kill ' + port)} to free this port
-				</Text>
-			</Box>
+			<Text>{process.processName || 'Unknown'} (PID: {process.pid})</Text>
+			{process.command && process.command !== 'N/A' && (
+				<Text dimColor>{process.command}</Text>
+			)}
 		</Box>
 	);
 };

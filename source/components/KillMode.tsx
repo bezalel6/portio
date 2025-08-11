@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Text, useApp, useInput} from 'ink';
 import {getProcessOnPort, killProcess} from '../utils/portDetector.js';
-import {Logo} from './Logo.js';
+// Logo removed for concise output
 
 interface Props {
 	port: number;
@@ -75,84 +75,41 @@ export const KillMode: React.FC<Props> = ({port, force = false}) => {
 
 	if (loading) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Box>
-					<Text color="yellow">Checking port {port}...</Text>
-				</Box>
-			</Box>
+			<Text color="yellow">Checking port {port}...</Text>
 		);
 	}
 
 	if (error) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Text color="red">Error checking port {port}:</Text>
-				<Text color="red">{error}</Text>
-			</Box>
+			<Text color="red">Error: {error}</Text>
 		);
 	}
 
 	if (!process) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Box>
-					<Text color="green">Port {port} is already free!</Text>
-				</Box>
-			</Box>
+			<Text color="green">✓ Port {port} is already free</Text>
 		);
 	}
 
 	if (killing) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Box>
-					<Text color="yellow">Killing process {process.pid}...</Text>
-				</Box>
-			</Box>
+			<Text color="yellow">Killing process {process.pid}...</Text>
 		);
 	}
 
 	if (result) {
 		return (
-			<Box flexDirection="column">
-				<Logo />
-				<Box>
-					<Text color={result.startsWith('✓') ? 'green' : result === 'Kill cancelled' ? 'yellow' : 'red'}>
-						{result}
-					</Text>
-				</Box>
-			</Box>
+			<Text color={result.startsWith('✓') ? 'green' : result === 'Kill cancelled' ? 'yellow' : 'red'}>
+				{result}
+			</Text>
 		);
 	}
 
 	if (waitingForConfirm) {
 		return (
 			<Box flexDirection="column">
-				<Logo />
-				<Text color="cyan" bold>Process found on port {port}:</Text>
-				<Box marginTop={1} flexDirection="column">
-					<Text>
-						<Text color="yellow">PID: </Text>
-						<Text>{process.pid}</Text>
-					</Text>
-					<Text>
-						<Text color="yellow">Process: </Text>
-						<Text>{process.processName || 'Unknown'}</Text>
-					</Text>
-					<Text>
-						<Text color="yellow">Command: </Text>
-						<Text>{process.command || 'N/A'}</Text>
-					</Text>
-				</Box>
-				<Box marginTop={1}>
-					<Text color="red" bold>
-						Kill this process? (y/n): 
-					</Text>
-				</Box>
+				<Text>{process.processName || 'Unknown'} (PID: {process.pid}) on port {port}</Text>
+				<Text color="red">Kill this process? (y/n): </Text>
 			</Box>
 		);
 	}

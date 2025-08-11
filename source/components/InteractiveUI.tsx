@@ -20,6 +20,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 	const [isFiltering, setIsFiltering] = useState(false);
 	const [showAll, setShowAll] = useState(initialShowAll);
 	const [verboseMode, setVerboseMode] = useState(false);
+	const [showFullPaths, setShowFullPaths] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [message, setMessage] = useState('');
 	const [confirmKill, setConfirmKill] = useState<number | null>(null);
@@ -162,6 +163,12 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 			return;
 		}
 
+		if (input === 'p') {
+			setShowFullPaths(!showFullPaths);
+			setMessage(showFullPaths ? 'Showing filenames only' : 'Showing full paths');
+			return;
+		}
+
 		if (key.upArrow) {
 			setSelectedIndex(Math.max(0, selectedIndex - 1));
 		}
@@ -189,7 +196,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 			setTimeout(() => loadProcesses(), 500);
 		} else {
 			setFailedKillPid(pid);
-			setMessage(`❌ Failed to kill ${process?.processName || `process ${pid}`}. Press ${chalk.yellow.bold('A')} to try with admin privileges or run porty as admin.`);
+			setMessage(`❌ Failed to kill ${process?.processName || `process ${pid}`}. Press ${chalk.yellow.bold('A')} to try with admin privileges or run portio as admin.`);
 		}
 	};
 
@@ -207,6 +214,18 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		const isSystemPort = proc.port < 1024;
 		const isHighPort = proc.port >= 49152;
 		
+		// Process command path
+		let commandDisplay = verboseMode ? (proc.fullCommand || proc.command) : proc.command;
+		if (!commandDisplay || commandDisplay.trim() === '') {
+			commandDisplay = 'NONE';
+		} else if (!showFullPaths && commandDisplay !== 'NONE') {
+			// Extract filename from path
+			const match = commandDisplay.match(/([^\\\/]+)(?:\.[^.]+)?(?:\s|$)/);
+			if (match) {
+				commandDisplay = match[0];
+			}
+		}
+		
 		if (isSelected) {
 			// Vibrant selection with background
 			return {
@@ -214,7 +233,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 				'PID': chalk.bgCyan.black(` ${proc.pid.toString().padEnd(6)} `),
 				'Port': chalk.bgCyan.black.bold(` ${proc.port.toString().padEnd(5)} `),
 				'Process': chalk.bgCyan.black(` ${(proc.processName || 'Unknown').padEnd(15)} `),
-				'Command': chalk.bgCyan.black(` ${verboseMode ? (proc.fullCommand || proc.command) : proc.command} `)
+				'Command': chalk.bgCyan.black(` ${commandDisplay} `)
 			};
 		}
 		
@@ -245,12 +264,17 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		
 		const processName = proc.processName || 'Unknown';
 		
+		// Style NONE differently
+		const commandColor = commandDisplay === 'NONE' 
+			? chalk.hex('#6B7280').italic  // Dimmed gray italic for NONE
+			: chalk.hex('#94A3B8');  // Slate gray for actual commands
+		
 		return {
 			'#': chalk.gray((index + 1).toString()),
 			'PID': chalk.hex('#A78BFA')(proc.pid.toString()), // Purple for PIDs
 			'Port': portColor.bold(proc.port.toString()),
 			'Process': processColor(processName),
-			'Command': chalk.hex('#94A3B8')(verboseMode ? (proc.fullCommand || proc.command) : proc.command) // Slate gray
+			'Command': commandColor(commandDisplay)
 		};
 	});
 
@@ -258,7 +282,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 		<Box flexDirection="column">
 			<Logo />
 			<Box marginBottom={1}>
-				<Text bold>{chalk.hex('#4ECDC4')('⚡ PORTY')}</Text>
+				<Text bold>{chalk.hex('#4ECDC4')('⚡ PORTIO')}</Text>
 				<Text color="gray"> - Port Process Manager </Text>
 				<Text color="magenta">v1.0</Text>
 			</Box>
@@ -343,6 +367,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 								{chalk.green.bold(' r')} refresh  
 								{chalk.magenta.bold(' d')} dev/all  
 								{chalk.blue.bold(' v')} verbose  
+								{chalk.hex('#FFB86C').bold(' p')} paths  
 								{chalk.gray.bold(' q')} quit
 							</Text>
 						</Box>

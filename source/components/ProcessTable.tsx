@@ -177,19 +177,31 @@ export const ProcessTable: React.FC<TableProps> = ({data, selectedIndex = -1, sc
 	const availableHeight = Math.max(5, terminalHeight - 10);
 	const visibleData = data.slice(viewportStart, viewportStart + availableHeight);
 	
+	// Calculate table width for centering
+	const tableWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0) + 
+		4 + (columns.length - 1) * 3; // borders and separators
+	const leftPadding = Math.max(0, Math.floor((terminalWidth - tableWidth) / 2));
+	const paddingString = ' '.repeat(leftPadding);
+	
 	return (
 		<Box flexDirection="column">
-			<Text>{topBorder}</Text>
-			{renderRow(Object.fromEntries(columns.map(c => [c, c])) as any, -1, true)}
-			<Text>{middleBorder}</Text>
+			<Text>{paddingString}{topBorder}</Text>
+			<Box>
+				<Text>{paddingString}</Text>
+				{renderRow(Object.fromEntries(columns.map(c => [c, c])) as any, -1, true)}
+			</Box>
+			<Text>{paddingString}{middleBorder}</Text>
 			{visibleData.map((row, index) => (
 				<React.Fragment key={viewportStart + index}>
-					{renderRow(row, viewportStart + index)}
+					<Box>
+						<Text>{paddingString}</Text>
+						{renderRow(row, viewportStart + index)}
+					</Box>
 				</React.Fragment>
 			))}
-			<Text>{bottomBorder}</Text>
+			<Text>{paddingString}{bottomBorder}</Text>
 			{data.length > availableHeight && (
-				<Box marginTop={1}>
+				<Box marginTop={1} justifyContent="center">
 					<Text color="magenta">
 						▶ [{viewportStart + 1}-{Math.min(viewportStart + availableHeight, data.length)} of {data.length}]
 					</Text>
