@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import {ProcessInfo, getProcessesOnPorts, killProcess, killProcessElevated, checkProcessExists} from '../utils/portDetector.js';
 import {ProcessTable} from './ProcessTable.js';
 import {Logo} from './Logo.js';
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 
 interface Props {
 	initialShowAll?: boolean;
