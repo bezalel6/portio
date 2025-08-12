@@ -97,6 +97,66 @@ function preprocessArgs(args: string[]): string[] {
 // Preprocess arguments to support flexible CLI parsing
 const processedArgs = preprocessArgs(process.argv.slice(2));
 
+// Check for -h or -v in original args for immediate help/version display
+const originalArgs = process.argv.slice(2);
+if (originalArgs.includes('-h') || originalArgs.includes('--help')) {
+	console.log(`  A beautiful terminal UI for managing processes on network ports (Windows only)
+
+  PORTIO - THE port pal you've been waiting for
+
+  Usage
+    $ portio                    # Interactive mode showing all ports (default)
+    $ portio <filter>           # Interactive mode with initial filter (e.g., "node", "3000", "chrome")
+    $ portio --dev              # Show only development ports
+    $ portio --check <port>     # Check what's running on a specific port
+    $ portio --wtf <port>       # Same as --check (for the frustrated)
+    $ portio --kill <port>      # Kill process on a specific port
+    $ portio --mine <port>      # Force kill process on port (no confirmation)
+    $ portio --list [port]      # JSON output of processes
+
+  Options
+    --dev, -d          Show only development ports (3000-10000, etc)
+    --check, -c        Check what's running on a specific port
+    --wtf              Alias for --check (when you're frustrated)
+    --kill, -k         Kill process on a specific port
+    --mine, -m         Kill process on port without confirmation
+    --force, -f        Skip confirmation when killing
+    --list, -l         Output process list as JSON
+    --help, -h         Show this help message
+    --version, -v      Show version
+
+  Interactive Controls
+    ↑/↓                Navigate through processes
+    Enter              Kill selected process
+    /                  Filter processes
+    r                  Refresh list
+    d                  Toggle dev/all ports
+    v                  Toggle verbose mode
+    p                  Toggle full paths/filenames
+    c                  Clear filter
+    q                  Quit
+    A                  Admin kill (when normal kill fails)
+
+  Examples
+    $ portio -m 3000 && npm run dev    # Ensure port 3000 is free before starting dev server
+    $ portio --mine 8080 && python -m http.server 8080  # Chain with any server
+    $ portio                    # Show interactive UI with all ports
+    $ portio node               # Show only processes containing "node"
+    $ portio 3000               # Show processes on port 3000
+    $ portio chrome             # Show chrome processes
+    $ portio -dev               # Show only dev ports (flexible syntax)
+    $ portio -check 3000        # See what's on port 3000 (single dash)
+    $ portio -kf 3000           # Kill with force (joined flags)
+    $ portio -dk                # Dev mode + interactive kill (joined flags)
+    $ portio --list             # Get JSON of all processes`);
+	process.exit(0);
+}
+
+if (originalArgs.includes('-v') || originalArgs.includes('--version')) {
+	console.log('2.1.0');
+	process.exit(0);
+}
+
 const cli = meow(`
 	${chalk.cyan.bold('PORTIO')} - THE port pal you've been waiting for
 
@@ -181,10 +241,12 @@ const cli = meow(`
 			isMultiple: false
 		},
 		help: {
-			type: 'boolean'
+			type: 'boolean',
+			shortFlag: 'h'
 		},
 		version: {
-			type: 'boolean'
+			type: 'boolean',
+			shortFlag: 'v'
 		}
 	}
 });
