@@ -9,16 +9,17 @@ const APP_VERSION = '2.0.0';
 
 interface Props {
 	initialShowAll?: boolean;
+	initialFilter?: string;
 }
 
-export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  // Default to showing all ports
+export const InteractiveUI: React.FC<Props> = ({initialShowAll = true, initialFilter = ''}) => {  // Default to showing all ports
 	const {exit} = useApp();
 	const {stdout} = useStdout();
 	const [processes, setProcesses] = useState<ProcessInfo[]>([]);
 	const [filteredProcesses, setFilteredProcesses] = useState<ProcessInfo[]>([]);
 	const [selectedIndex, setSelectedIndex] = useState(0);
-	const [filterQuery, setFilterQuery] = useState('');
-	const [isFiltering, setIsFiltering] = useState(false);
+	const [filterQuery, setFilterQuery] = useState(initialFilter);
+	const [isFiltering, setIsFiltering] = useState(!!initialFilter);
 	const [showAll, setShowAll] = useState(initialShowAll);
 	const [verboseMode, setVerboseMode] = useState(false);
 	const [showFullPaths, setShowFullPaths] = useState(false);
