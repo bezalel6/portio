@@ -484,9 +484,11 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true, initialFi
 					{!isFiltering && !confirmKill && !failedKillPid && (
 						<Box marginTop={1} paddingX={1} flexDirection="column">
 							{selectedOverflow ? (
-								<Box>
-									<Text color="cyan" dimColor>Cmd: </Text>
-									<Text color="gray">{selectedOverflow.length > 70 ? selectedOverflow.substring(0, 67) + '...' : selectedOverflow}</Text>
+								<Box flexDirection="column">
+									<Box>
+										<Text color="cyan" dimColor>Cmd: </Text>
+										<Text color="gray" wrap="wrap">{selectedOverflow}</Text>
+									</Box>
 								</Box>
 							) : (
 								<Box flexDirection="column">

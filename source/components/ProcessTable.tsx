@@ -41,42 +41,48 @@ export const ProcessTable: React.FC<TableProps> = ({data, selectedIndex = -1}) =
 		'PID': 6,
 		'Port': 5,
 		'Process': 10,
-		'Command': 20
+		'Command': 40  // Increased minimum width for Command
 	};
 	
 	const columnWidths = useMemo(() => {
 		const columnWidths: Record<string, number> = {};
 		const bordersAndPadding = 4 + (columns.length - 1) * 3;
-		let availableWidth = terminalWidth - bordersAndPadding;
+		let availableWidth = terminalWidth - bordersAndPadding - 2; // Extra buffer for safety
 		
+		// Calculate natural widths first
 		columns.forEach(col => {
 			let maxWidth = col.length;
 			
 			data.forEach(row => {
 				const cellValue = stripAnsi(row[col] || '');
-				maxWidth = Math.max(maxWidth, Math.min(cellValue.length, col === 'Command' ? 60 : 30));
+				// Don't artificially limit Command column during measurement
+				maxWidth = Math.max(maxWidth, col === 'Command' ? cellValue.length : Math.min(cellValue.length, 30));
 			});
 			
 			columnWidths[col] = Math.max(minWidths[col] || 10, maxWidth);
 		});
 		
-		let totalWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
+		// Calculate total width of non-Command columns
+		let fixedColumnsWidth = 0;
+		columns.forEach(col => {
+			if (col !== 'Command') {
+				fixedColumnsWidth += columnWidths[col] || 0;
+			}
+		});
 		
-		if (totalWidth > availableWidth) {
+		// Give Command column all remaining space
+		const remainingWidth = availableWidth - fixedColumnsWidth;
+		if (remainingWidth > (minWidths['Command'] || 40)) {
+			// Use all available width for Command column
+			columnWidths['Command'] = remainingWidth;
+		} else {
+			// If not enough space, scale everything down proportionally
+			const totalWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
 			const ratio = availableWidth / totalWidth;
 			
 			columns.forEach(col => {
-				if (col === 'Command') {
-					columnWidths[col] = Math.max(minWidths[col] || 20, Math.floor((columnWidths[col] || 20) * ratio * 1.5));
-				} else {
-					columnWidths[col] = Math.max(minWidths[col] || 10, Math.floor((columnWidths[col] || 10) * ratio));
-				}
+				columnWidths[col] = Math.max(minWidths[col] || 10, Math.floor((columnWidths[col] || 10) * ratio));
 			});
-			
-			totalWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
-			if (totalWidth < availableWidth) {
-				columnWidths['Command'] = (columnWidths['Command'] || 20) + (availableWidth - totalWidth);
-			}
 		}
 		
 		return columnWidths;
