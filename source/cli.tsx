@@ -8,6 +8,95 @@ import {CheckMode} from './components/CheckMode.js';
 import {KillMode} from './components/KillMode.js';
 import {getProcessesOnPorts, getProcessOnPort} from './utils/portDetector.js';
 
+/**
+ * Preprocesses command line arguments to make CLI more flexible:
+ * - Normalizes single dashes to double dashes for long flags
+ * - Splits joined short flags (e.g., -kf -> -k -f)
+ * - Preserves existing double-dash behavior
+ */
+function preprocessArgs(args: string[]): string[] {
+	const processed: string[] = [];
+	
+	// Map of long flag names to their short equivalents
+	const longToShort: Record<string, string> = {
+		'dev': 'd',
+		'check': 'c', 
+		'kill': 'k',
+		'mine': 'm',
+		'force': 'f',
+		'list': 'l',
+		'help': 'h',
+		'version': 'v'
+	};
+	
+	// Map of short flags to long names
+	const shortToLong: Record<string, string> = {
+		'd': 'dev',
+		'c': 'check',
+		'k': 'kill', 
+		'm': 'mine',
+		'f': 'force',
+		'l': 'list',
+		'h': 'help',
+		'v': 'version'
+	};
+	
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i];
+		
+		// Skip undefined arguments
+		if (!arg) {
+			continue;
+		}
+		
+		// Handle arguments that start with a single dash
+		if (arg.startsWith('-') && !arg.startsWith('--')) {
+			const flagPart = arg.slice(1); // Remove the leading dash
+			
+			// Check if it's a single long flag with single dash (e.g., -kill)
+			if (longToShort[flagPart]) {
+				processed.push(`--${flagPart}`);
+			}
+			// Check if it's a joined short flags scenario (e.g., -kf, -dk)
+			else if (flagPart.length > 1) {
+				const flags = flagPart.split('');
+				let allValidShortFlags = true;
+				
+				// Check if all characters are valid short flags
+				for (const flag of flags) {
+					if (!shortToLong[flag]) {
+						allValidShortFlags = false;
+						break;
+					}
+				}
+				
+				if (allValidShortFlags) {
+					// Split into individual short flags
+					for (const flag of flags) {
+						processed.push(`-${flag}`);
+					}
+				} else {
+					// Not all are valid short flags, treat as single argument
+					processed.push(arg);
+				}
+			}
+			// Single character short flag (e.g., -k, -d)
+			else {
+				processed.push(arg);
+			}
+		}
+		// Handle arguments that already start with double dash or no dash
+		else {
+			processed.push(arg);
+		}
+	}
+	
+	return processed;
+}
+
+// Preprocess arguments to support flexible CLI parsing
+const processedArgs = preprocessArgs(process.argv.slice(2));
+
 const cli = meow(`
 	${chalk.cyan.bold('PORTIO')} - THE port pal you've been waiting for
 
@@ -47,12 +136,14 @@ const cli = meow(`
 	  $ portio -m 3000 && npm run dev    ${chalk.dim('# Ensure port 3000 is free before starting dev server')}
 	  $ portio --mine 8080 && python -m http.server 8080  ${chalk.dim('# Chain with any server')}
 	  $ portio                    ${chalk.dim('# Show interactive UI with all ports')}
-	  $ portio --dev              ${chalk.dim('# Show only dev ports')}
-	  $ portio --check 3000       ${chalk.dim('# See what\'s on port 3000')}
-	  $ portio --kill 3000        ${chalk.dim('# Kill process on port 3000')}
+	  $ portio -dev               ${chalk.dim('# Show only dev ports (flexible syntax)')}
+	  $ portio -check 3000        ${chalk.dim('# See what\'s on port 3000 (single dash)')}
+	  $ portio -kf 3000           ${chalk.dim('# Kill with force (joined flags)')}
+	  $ portio -dk                ${chalk.dim('# Dev mode + interactive kill (joined flags)')}
 	  $ portio --list             ${chalk.dim('# Get JSON of all processes')}
 `, {
 	importMeta: import.meta,
+	argv: processedArgs,
 	flags: {
 		dev: {
 			type: 'boolean',

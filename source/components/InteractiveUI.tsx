@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import {ProcessInfo, getProcessesOnPorts, killProcess, killProcessElevated, checkProcessExists} from '../utils/portDetector.js';
 import {ProcessTable} from './ProcessTable.js';
 import {Logo} from './Logo.js';
-import * as packageJson from '../../package.json';
+const APP_VERSION = '2.0.0';
 
 interface Props {
 	initialShowAll?: boolean;
@@ -406,7 +406,7 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 			<Box marginBottom={1}>
 				<Text bold>{chalk.hex('#4ECDC4')('⚡ PORTIO')}</Text>
 				<Text color="gray"> - Port Process Manager </Text>
-				<Text color="magenta">v{(packageJson as any).default?.version || (packageJson as any).version || '1.1.0'}</Text>
+				<Text color="magenta">v{APP_VERSION}</Text>
 			</Box>
 
 			{loading ? (

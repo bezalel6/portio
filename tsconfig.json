@@ -4,5 +4,5 @@
 		"outDir": "dist",
 		"resolveJsonModule": true
 	},
-	"include": ["source", "package.json"]
+	"include": ["source"]
 }
