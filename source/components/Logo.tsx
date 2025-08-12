@@ -12,12 +12,7 @@ const LogoComponent: React.FC<LogoProps> = ({showText = true}) => {
 	}
 
 	const asciiTitle = [
-		'██████╗  ██████╗ ██████╗ ████████╗██╗ ██████╗ ',
-		'██╔══██╗██╔═══██╗██╔══██╗╚══██╔══╝██║██╔═══██╗',
-		'██████╔╝██║   ██║██████╔╝   ██║   ██║██║   ██║',
-		'██╔═══╝ ██║   ██║██╔══██╗   ██║   ██║██║   ██║',
-		'██║     ╚██████╔╝██║  ██║   ██║   ██║╚██████╔╝',
-		'╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝ ',
+		'▌ PORTIO ▐',
 	];
 
 	return (
@@ -28,9 +23,9 @@ const LogoComponent: React.FC<LogoProps> = ({showText = true}) => {
 						{line}
 					</Text>
 				))}
-				<Box marginTop={1}>
-					<Text color="gray" italic>
-						The port pal you've been waiting for
+				<Box marginTop={0}>
+					<Text color="gray" italic dimColor>
+						port manager
 					</Text>
 				</Box>
 			</Box>

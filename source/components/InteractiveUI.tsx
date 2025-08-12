@@ -488,18 +488,25 @@ export const InteractiveUI: React.FC<Props> = ({initialShowAll = true}) => {  //
 									<Text color="gray">{selectedOverflow.length > 70 ? selectedOverflow.substring(0, 67) + '...' : selectedOverflow}</Text>
 								</Box>
 							) : (
-								<Text color="gray">
-									{chalk.cyan.bold('↑↓')} nav  
-									{chalk.green.bold(' ␣')} select  
-									{selectedPids.size > 0 ? chalk.red.bold(' k') : chalk.red.bold(' ⏎')} kill  
-									{chalk.yellow.bold(' /')} search  
-									{chalk.green.bold(' r')} refresh  
-									{chalk.magenta.bold(' d')} dev/all  
-									{chalk.blue.bold(' v')} verbose  
-									{chalk.hex('#FFB86C').bold(' p')} paths  
-									{chalk.gray.bold(' q')} quit
-									{selectedPids.size > 0 && chalk.yellow(` (${selectedPids.size} selected)`)}
-								</Text>
+								<Box flexDirection="column">
+									<Text color="gray">
+										{chalk.cyan.bold('↑↓')} nav  
+										{chalk.green.bold(' ␣')} select  
+										{selectedPids.size > 0 ? chalk.red.bold(' k') : chalk.red.bold(' ⏎')} kill  
+										{chalk.yellow.bold(' /')} search  
+										{chalk.green.bold(' r')} refresh  
+										{chalk.magenta.bold(' d')} dev/all  
+										{chalk.blue.bold(' v')} verbose  
+										{chalk.hex('#FFB86C').bold(' p')} paths  
+										{chalk.gray.bold(' q')} quit
+										{selectedPids.size > 0 && chalk.yellow(` (${selectedPids.size} selected)`)}
+									</Text>
+									<Box justifyContent="flex-end" marginTop={0}>
+										<Text color="gray" dimColor italic>
+											made by RNDev
+										</Text>
+									</Box>
+								</Box>
 							)}
 						</Box>
 					)}
