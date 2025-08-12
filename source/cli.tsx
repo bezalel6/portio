@@ -13,6 +13,7 @@ const cli = meow(`
 
 	${chalk.bold('Usage')}
 	  $ portio                    ${chalk.dim('# Interactive mode showing all ports (default)')}
+	  $ portio <filter>           ${chalk.dim('# Interactive mode with initial filter (e.g., "node", "3000", "chrome")')}
 	  $ portio --dev              ${chalk.dim('# Show only development ports')}
 	  $ portio --check <port>     ${chalk.dim('# Check what\'s running on a specific port')}
 	  $ portio --wtf <port>       ${chalk.dim('# Same as --check (for the frustrated)')}
@@ -47,6 +48,9 @@ const cli = meow(`
 	  $ portio -m 3000 && npm run dev    ${chalk.dim('# Ensure port 3000 is free before starting dev server')}
 	  $ portio --mine 8080 && python -m http.server 8080  ${chalk.dim('# Chain with any server')}
 	  $ portio                    ${chalk.dim('# Show interactive UI with all ports')}
+	  $ portio node               ${chalk.dim('# Show only processes containing "node"')}
+	  $ portio 3000               ${chalk.dim('# Show processes on port 3000')}
+	  $ portio chrome             ${chalk.dim('# Show chrome processes')}
 	  $ portio --dev              ${chalk.dim('# Show only dev ports')}
 	  $ portio --check 3000       ${chalk.dim('# See what\'s on port 3000')}
 	  $ portio --kill 3000        ${chalk.dim('# Kill process on port 3000')}
@@ -180,10 +184,13 @@ async function main() {
 		process.exit(1);
 	}
 	
+	// Check for non-flag arguments to use as initial filter
+	const initialFilter = cli.input.length > 0 ? cli.input.join(' ') : '';
+	
 	// Don't use alternate screen buffer to prevent terminal issues on Windows
 	// This keeps the output visible after exit
 	
-	const app = render(<InteractiveUI initialShowAll={!flags.dev} />, {  // Show all by default, dev only if flag set
+	const app = render(<InteractiveUI initialShowAll={!flags.dev} initialFilter={initialFilter} />, {  // Show all by default, dev only if flag set
 		exitOnCtrlC: false  // We handle this in the component
 	});
 	
