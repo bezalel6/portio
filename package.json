@@ -6,7 +6,7 @@
 	"author": "bezalel6",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/bezalel6/portio.git"
+		"url": "git+https://github.com/bezalel6/portio.git"
 	},
 	"homepage": "https://github.com/bezalel6/portio#readme",
 	"bugs": {
